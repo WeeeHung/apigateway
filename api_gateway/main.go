@@ -7,7 +7,9 @@ import (
 )
 
 func main() {
-	h := server.Default()
+	h := server.New()
+
+	h.Routes()
 
 	register(h)
 	h.Spin()
