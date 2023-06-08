@@ -1,4 +1,4 @@
-package rpcserver4
+package main
 
 import (
 	gateway_service "github.com/cloudwego/RPC_Servers/kitex_gen/gateway_service"

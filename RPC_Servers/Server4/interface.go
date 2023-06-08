@@ -1,4 +1,4 @@
-package rpcserver4
+package main
 
 import (
 	"context"
