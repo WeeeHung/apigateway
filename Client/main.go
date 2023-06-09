@@ -1,21 +1,7 @@
-/*
- * Copyright 2022 CloudWeGo Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package main
 
+// Reference methods below
+// =========================================================================
 // func Do() {
 // 	c, err := client.NewClient()
 // 	if err != nil {
@@ -120,20 +106,82 @@ package main
 // }
 
 import (
+	// "bufio"
+	// "os"
+	// "strings"
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/app/client"
 	"github.com/cloudwego/hertz/pkg/network/standard"
+	// "github.com/cloudwego/hertz/pkg/protocol"
 	// "github.com/cloudwego/hertz/pkg/common/utils"
 	// "github.com/cloudwego/hertz/pkg/protocol"
 	// "github.com/cloudwego/hertz/pkg/protocol/consts"
 )
 
+func getNumber() {
+	_, body, err := client.Get(context.Background(), nil, "http://localhost:8080/numbers")
+	if err != nil {
+		// Handle error
+		fmt.Printf("err: %v\n", err)
+		return
+	}
+	var obj struct {
+		Numbers struct {
+			Numbers []int `json:"numbers"`
+		} `json:"numbers"`
+	}
+
+	err = json.Unmarshal(body, &obj)
+	if err != nil {
+		// Handle error
+		fmt.Printf("err: %s\n", body)
+		return
+	}
+	fmt.Printf("Current numbers: %v\n", obj.Numbers.Numbers)
+}
+
+func addNumber(x int) {
+	// Create a map with the "number" key and the integer value
+	data := map[string]int{"number": x}
+
+	// Convert the map to a JSON-encoded byte slice
+	payload, err := json.Marshal(data)
+	if err != nil {
+		// Handle error
+		return
+	}
+
+	// Create a new HTTP POST request with the JSON payload and Content-Type header
+	req, err := http.NewRequest("POST", "http://localhost:8080/numbers", bytes.NewBuffer(payload))
+	if err != nil {
+		// Handle error
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the HTTP request using an HTTP client
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		// Handle error
+		return
+	}
+
+	// Close the response body
+	defer resp.Body.Close()
+
+	fmt.Printf("Number added.\n")
+}
+
 func main() {
 	// Create a new Hertz client.
-	client, err := client.NewClient(
+	_, err := client.NewClient(
 		client.WithDialTimeout(1*time.Second),
 		client.WithDialer(standard.NewDialer()),
 		client.WithKeepAlive(true),
@@ -142,30 +190,14 @@ func main() {
 		return
 	}
 
-	// Send a GET request to the "/pingz" endpoint on the server.
-	status, body, _ := client.Get(context.Background(), nil, "http://localhost:8080/pingz")
-	fmt.Printf("status=%v body=%v\n", status, string(body))
-	if err != nil {
-		// Handle error
-	}
-
-	status, body, _ = client.Get(context.Background(), nil, "http://localhost:8080/foo")
-	fmt.Printf("status=%v body=%v\n", status, string(body))
-	if err != nil {
-		// Handle error
-	}
-
-	status, body, _ = client.Get(context.Background(), nil, "http://localhost:8080/internalRedirect")
-	fmt.Printf("status=%v body=%v\n", status, string(body))
-	if err != nil {
-		// Handle error
-	}
-
-	status, body, _ = client.Get(context.Background(), nil, "http://localhost:8080/externalRedirect")
-	fmt.Printf("status=%v body=%v\n", status, string(body))
-	if err != nil {
-		// Handle error
-	}
+	getNumber()
+	addNumber(23)
+	getNumber()
+	addNumber(453)
+	getNumber()
+	addNumber(5482)
+	addNumber(932)
+	getNumber()
 
 	// defer resp.Body.Close()
 
