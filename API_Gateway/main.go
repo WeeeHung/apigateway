@@ -3,12 +3,22 @@
 package main
 
 import (
+	"context"
+
+	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/common/utils"
 )
 
 func main() {
-	h := server.Default()
+	h := server.Default(server.WithHostPorts("127.0.0.1:8080"))
 
 	register(h)
+
+	h.PanicHandler = func(c context.Context, ctx *app.RequestContext) {
+		ctx.JSON(500, utils.H{
+			"message": "panic",
+		})
+	}
 	h.Spin()
 }
